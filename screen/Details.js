@@ -6,15 +6,29 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
+  FlatList,Alert,
   Platform,  Easing,
   ActivityIndicator,Image, Animated
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'
+import SwipeRender from "react-native-swipe-render";
 //import all the components we are going to use.
 import RNFetchBlob from 'rn-fetch-blob'
 import { Button } from 'react-native-paper';
 export default class Details extends Component {
+  static navigationOptions = ({ navigation }) => ({
+    header:(
+      <View style={{  justifyContent:"space-between",
+      flexDirection:"row",
+      backgroundColor:'#2f95dc',
+      paddingVertical:10,
+      paddingHorizontal:20,}}>
+          <Text> </Text>
+          <Text style={{fontSize:20,marginTop:5,color:'white',}}>Chi tiết</Text>
+          <Text> </Text>
+      </View>
+    ),
+  })
 
 state={
   isshow:false,
@@ -23,7 +37,10 @@ state={
   fadeValue: new Animated.Value(0),
   fadeValue2: new Animated.Value(0),
   spinValue : new Animated.Value(0),
-  spinValue2: new Animated.Value(0)
+  spinValue2: new Animated.Value(0),
+  link_l:'',
+  link_z:''
+
 
 
 
@@ -75,36 +92,55 @@ _end2 = () => {
     duration: 1000
   }).start();
 };
-fecthdownload(url){
-  var android=RNFetchBlob.android
-  RNFetchBlob.config({
-    fileCache : true,
-    // android only options, these options be a no-op on IOS
-    addAndroidDownloads : {
-      // Show notification when response data transmitted
-      notification : true,
-      // Title of download notification
-      title : url,
-      // File description (not notification description)
-      description : url,
-      mime : 'image/png',
-     
-      // Make the file scannable  by media scanner
-      mediaScannable : true,
-    
-    }
-  })
-  .fetch('GET',url)
-  .then(res=>{
-    android.actionViewIntent(res.path(), 'image/png')
-    console.log(res.path())
-    
-  
-  })
-}
+
 componentDidMount(){
 
+this.setState({link_l:url=this.props.navigation.getParam('url', 'NO-NAME')})
 }
+download(urll){
+  var date      = new Date();
+  var url       = urll;
+  var ext       = this.extention(url);
+  console.log(ext)
+  ext = "."+ext[0];
+  const { config, fs } = RNFetchBlob
+  let PictureDir = fs.dirs.PictureDir
+  let options = {
+    fileCache: true,
+    addAndroidDownloads : {
+      useDownloadManager : true,
+      notification : true,
+      path:  PictureDir + "/"+Math.floor(date.getTime() + date.getSeconds() / 2)+ext,
+      description : 'Image'
+    }
+  }
+  config(options).fetch('GET', url).then((res) => {
+    Alert.alert("Tải xuống thành công");
+  }).catch((err)=>{
+console
+  });
+}
+extention(filename){
+  return (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename) : undefined;
+}
+
+
+
+swiper=(index)=>{
+    const url=this.props.navigation.getParam('url', 'NO-NAME')
+    this.setState({link_l:url[index].url_l})
+    this.setState({link_z:url[index].url_z})
+
+}
+componentDidMount(){
+    const url=this.props.navigation.getParam('url', 'NO-NAME')
+    const idex=this.props.navigation.getParam('index', null)
+    this.setState({link_l:url[idex].url_l})
+    this.setState({link_z:url[idex].url_z})
+ 
+}
+
+
   render() {
     const spin = this.state.spinValue.interpolate({
       inputRange: [0, 1],
@@ -119,12 +155,35 @@ componentDidMount(){
           outputRange: ['0deg', '0deg',]
           });
         
-    const android = RNFetchBlob.android
+   // const android = RNFetchBlob.android
     const url=this.props.navigation.getParam('url', 'NO-NAME')
+    const idex=this.props.navigation.getParam('index', null)
     return (
       <View style={styles.container}>
-            <View style={{width:'99%',height:'100%',position:'relative'}}>
-    <Image style={{width:'100%',height:'100%',position:'absolute'}} source={{uri:this.props.navigation.getParam('url', 'NO-NAME')}}></Image>
+            <View style={{width:'99.8%',height:'100%',position:'relative'}}>
+            <SwipeRender
+            data={url}
+            renderItem={({ item, index }) => {
+                return (
+                    <View key={"SwipeRender-slide#" + idex} style={{width:'100%',height:'100%'}}>
+                        <Image
+                            source={{ uri: item.url_l }}
+                            style={{width:'100%',height:'100%',backgroundColor:'#000'}}
+                            resizeMode="contain"
+                        />
+                    </View>
+                );
+            }}
+
+            // OPTIONAL PROP USAGE.
+            index={idex} // default 0
+            loop={false} // default false
+            loadMinimal={true} // default false
+            loadMinimalSize={2}
+            enableAndroidScrollView={true} // default false
+            horizontal={true} // default true
+            onIndexChanged={this.swiper}
+        />
     <TouchableOpacity onPress={()=>{
     if(this.state.isshow==false){
       this.setState({isshow:true})
@@ -140,7 +199,7 @@ componentDidMount(){
         this.setState({ fadeValue: new Animated.Value(0)})
         this.setState({ fadeValue2: new Animated.Value(0)})
  
-      },1100)
+      },700)
       this.setState({isspin:false})
       this._end()
       this._end2()
@@ -161,14 +220,14 @@ componentDidMount(){
             margin: 5,
             borderRadius: 12,
             position:'absolute',
-            top:'53%',left:'54%' 
+            top:'53%',left:'55%' 
             
           }}
         >
        
         <View style={{flexDirection:'row',alignItems:'center'}}>
-        <Text style={{padding:4,borderRadius:3,backgroundColor:'#ccc'}} >1080x2690</Text>
-          <TouchableOpacity onPress={()=>{this.fecthdownload(url)}} style={{marginLeft:4,width:60,height:60,borderRadius:30,backgroundColor:'red',justifyContent:'center',alignItems:'center'}}>
+        <Text style={{padding:4,borderRadius:3,backgroundColor:'#ccc'}} >1080x2960</Text>
+          <TouchableOpacity onPress={()=>{this.download(this.state.link_l)}} style={{marginLeft:4,width:60,height:60,borderRadius:30,backgroundColor:'red',justifyContent:'center',alignItems:'center'}}>
           <Image style={{width:20,height:20,position:'absolute'}} source={require('../icon/download.png')}></Image>   
           </TouchableOpacity>
          
@@ -183,13 +242,13 @@ componentDidMount(){
             borderRadius: 12,
             position:'absolute',
             marginTop:70,
-            top:'53%',left:'54%' 
+            top:'53%',left:'57%' 
           }}
         >
        
        <View style={{flexDirection:'row',alignItems:'center'}}>
-        <Text style={{padding:4,borderRadius:3,backgroundColor:'#ccc'}} >1080x2690</Text>
-          <TouchableOpacity onPress={()=>{this.fecthdownload(url)}} style={{marginLeft:4,width:60,height:60,borderRadius:30,backgroundColor:'red',alignItems:'center',justifyContent:'center'}}>
+        <Text style={{padding:4,borderRadius:3,backgroundColor:'#ccc'}} >640x1060</Text>
+          <TouchableOpacity onPress={()=>{this.download(this.state.link_z)}} style={{marginLeft:4,width:60,height:60,borderRadius:30,backgroundColor:'red',alignItems:'center',justifyContent:'center'}}>
           <Image style={{width:20,height:20,position:'absolute'}} source={require('../icon/download.png')}></Image>
           </TouchableOpacity>
          
@@ -208,7 +267,7 @@ componentDidMount(){
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop:1,
+  
     alignItems: 'center',backgroundColor:'#fff',
    
   },

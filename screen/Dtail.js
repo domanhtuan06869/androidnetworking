@@ -55,7 +55,7 @@ export default class App extends Component {
 
     super();
     this.state = {
-      loading: true,url:'https://www.flickr.com/services/rest/?method=flickr.favorites.getList&api_key=258b6c19d93adac85aff5c0daf16634b&user_id=184495155%40N06&extras=views%2Cmedia%2Cpath_alias%2Curl_sq%2Curl_t%2Curl_s%2Curl_q%2Curl_m%2Curl_n%2Curl_z%2Curl_c%2Curl_l%2Curl_o&per_page=50&page=1&format=json&nojsoncallback=1',
+      loading: true,url:'https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=2bb9a866a9f3f5cdd73350262f2775ea&tags=thi%C3%AAn+nhi%C3%AAn&text=thi%C3%AAn+nhi%C3%AAn&extras=+views%2C+media%2C+path_alias%2C+url_sq%2C+url_t%2C+url_s%2C+url_q%2C+url_m%2C+url_n%2C+url_z%2C+url_c%2C+url_l%2C+url_o&per_page=80&page=1&format=json&nojsoncallback=1&auth_token=72157711254317986-becdd1f72ee17a15&api_sig=cd5c00f92a8456b67d4e221098915899',
       //Loading state used while loading the data for the first time
       serverData: [],
       urlpramas:null,
@@ -73,9 +73,8 @@ export default class App extends Component {
     this.getImage()
   }
    getImage(){
-  this.setState({urlpramas:this.props.navigation.getParam('url', null)})
-    var url=this.state.urlpramas==null?this.state.url:this.state.urlpramas
-  fetch(url)
+
+  fetch(this.state.url)
     .then(response => response.json())
     .then(responseJson => {
      responseJson = responseJson.photos.photo.slice((this.offset*11),((this.offset+1)*11)-1)
@@ -109,23 +108,18 @@ export default class App extends Component {
   loadMoreData = () => {
    
   
-    var url=this.state.urlpramas==null?this.state.url:this.state.urlpramas
+  
     this.setState({ fetching_from_server: true }, () => { 
    
-      fetch(url)
+      fetch(this.state.url)
           .then(response => response.json())
           .then(responseJson => {
            responseJson = responseJson.photos.photo.slice((this.offset*11),((this.offset+1)*11)-1)
             console.log("offset Load : "+this.offset);
-        //  console.log(responseJson);
-          //Successful response from the API Call 
-            this.offset = this.offset + 1;
-           
             this.setState({
-  
+         
               serverData: [...this.state.serverData, ...responseJson],
               fetching_from_server: false,
-              //updating the loading state to false
             });
           })
           .catch(error => {
@@ -137,10 +131,12 @@ export default class App extends Component {
     },4000)
   };
 
-
+chay(){
+  <Text>fgsgssdfdsffs</Text>
+}
   renderFooter() {
     return (
-   
+
       <View style={styles.footer}>
         <TouchableOpacity
           activeOpacity={0.9}
@@ -156,54 +152,45 @@ export default class App extends Component {
     );
   }
 
-
   render() {
     const android = RNFetchBlob.android
     return (
-      <View  style={styles.container}>
+      <View   style={styles.container}>
      
         {this.state.loading ? (
           <ActivityIndicator size="large" />
         ) : (
-          <FlatList
-          refreshControl={ <RefreshControl
-            refreshing={this.state.isrefesh}
-            onRefresh={this._onRefresh}
          
-          />}
-          CellRendererComponent={({ children, item, ...props }) => {
-            return (
-                <View {...props} style={{ marginTop: item.marginTop }}>
-                    {children}
-                </View>
-            )
-        }}
-          contentContainerStyle={{width: '100%',backgroundColor:'#fff',alignItems:'center', }}
-            numColumns={2}
-         
-            keyExtractor={(item, index) =>String(item.id)}
-            data={this.state.serverData}
-            renderItem={({ item, index }) => (
-              <View  style={{backgroundColor:'#fff',marginTop:10,marginLeft:3,margin:5 ,flexDirection:'row'}}>
-              <TouchableOpacity style={[styles.shad,{height:item.height_q,width:item.width_q,position:'relative',flexDirection:'row',alignItems:'center'}]}
-              onPress={()=>
-      
-              this.props.navigation.navigate('Details',{url:this.state.serverData,index:index})
-             
-              } >
               
-                <Image style={{height:item.height_q,width:item.width_q,borderRadius:6,position:'absolute',  resizeMode: 'cover'}} source={{uri:String(item.url_l)}}></Image>
-                <Text style={{left:20,position:'absolute',padding:1,fontSize:10,backgroundColor:'#ccc',borderRadius:3,opacity:0.6,top:'80%'}}>{item.views} view</Text>
-            
-                </TouchableOpacity>
-          </View>
-            )}
-            onEndReached={this.loadMoreData}
-            onEndReachedThreshold ={0.1}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            ListFooterComponent={this.renderFooter.bind(this)}
-            //Adding Load More button as footer component
+            <View style={styles.container}>
+            <FlatList
+              style={styles.flatlist}
+              data={this.state.serverData}
+              keyExtractor={(item, index) => index.toString()}
+              CellRendererComponent={({ children, item, ...props }) => {
+                  return (
+                      <View {...props} style={{ marginTop: 2 }}>
+                          {children}
+                      </View>
+                  )
+              }}
+              renderItem={({ item,index }) => {
+                
+                  return (
+                      <View style={styles.viewRow}>
+                      
+               {index%2==0 ?<Image style={{height:item.height_m,width:item.width_q,borderRadius:6,marginTop:10,backgroundColor:'blue'}} source={{uri:item.url_m}}></Image>:undefined }    
+                        
+               {index%2==0 ?<Image style={{height:item.height_m,width:item.width_q,borderRadius:6,marginTop:10,backgroundColor:'blue'}} source={{uri:item.url_m}}></Image>:undefined }  
+                     
+   
+                       
+                       
+                      </View>
+                  )
+              }}
           />
+      </View>
         )}
         </View>
      
@@ -212,50 +199,20 @@ export default class App extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  
-backgroundColor:'#fff'
-  },
-
-  separator: {
-    height: 0.5,
-  
-  },
-  text: {
-    fontSize: 15,
-    color: 'black',
-  },
-  footer: {
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  loadMoreBtn: {
-    padding: 10,
-    backgroundColor: '#800000',
-    borderRadius: 4,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnText: {
-    color: 'white',
-    fontSize: 15,
-    textAlign: 'center',
-  }, shad:{
-   backgroundColor:'#fff', borderRadius:10,alignItems:'center',marginLeft:2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
+    container: {
+       flex: 1
     },
-    shadowOpacity: 0.36,
-    shadowRadius: 6.68,
+    flatList: {
+       width: '100%',
+       height: '100%'
+    },
+    viewRow: {
+       flexDirection: 'row',
+       alignItems:'flex-start'
     
-    elevation: 11,
-  }, viewRow: {
-    flexDirection: 'row'
- }
-});
+    },
+    image: {
+       width: '49%',
+       resizeMode: 'cover'
+    }
+ });
